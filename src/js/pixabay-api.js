@@ -1,7 +1,8 @@
 import axios from 'axios';
 export const form = document.querySelector('.form');
 export const input = document.querySelector('input[name="search-text"]');
-import { pageNum, perPage } from './render-functions';
+export const perPage = 15;
+export let totalHits;
 export async function getImagesByQuery(query, page) {
   const response = await axios.get('https://pixabay.com/api/?', {
     params: {
@@ -11,10 +12,13 @@ export async function getImagesByQuery(query, page) {
       orientation: 'horizontal',
       safesearch: true,
       per_page: perPage,
-      page: pageNum,
+      page,
     },
   });
 
   const images = [...response.data.hits];
-  return images;
+  totalHits = response.data.totalHits;
+  console.log(response.data);
+
+  return { images, totalHits };
 }

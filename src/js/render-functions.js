@@ -2,10 +2,10 @@ import SimpleLightbox from 'simplelightbox';
 // Додатковий імпорт стилів
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import { form } from './pixabay-api.js';
-const gallery = document.querySelector('.gallery');
+export const gallery = document.querySelector('.gallery');
 const loader = document.querySelector('.loader');
 export const btn = document.querySelector('.click-btn');
-let lightbox;
+export let lightbox;
 
 export function createGallery(images) {
   const queryArr = images
@@ -24,7 +24,7 @@ export function createGallery(images) {
         <p>Downloads<br> ${downloads}</p></div></div>`
     )
     .join('');
-  gallery.innerHTML = queryArr;
+  gallery.insertAdjacentHTML('beforeend', queryArr);
 
   form.reset();
   if (!lightbox) {

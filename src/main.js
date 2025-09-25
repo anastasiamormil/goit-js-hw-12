@@ -1,9 +1,15 @@
 import iziToast from 'izitoast';
 // Додатковий імпорт стилівcat
 import 'izitoast/dist/css/iziToast.min.css';
-let pageNum = 1;
-const perPage = 15;
-import { form, input, getImagesByQuery } from './js/pixabay-api.js';
+let page = 499;
+
+import {
+  form,
+  input,
+  getImagesByQuery,
+  perPage,
+  totalHits,
+} from './js/pixabay-api.js';
 import {
   showLoader,
   clearGallery,
@@ -11,12 +17,14 @@ import {
   createGallery,
   showLoadMoreButton,
   hideLoadMoreButton,
+  btn,
 } from './js/render-functions.js';
+let query;
 hideLoadMoreButton();
 form.addEventListener('submit', handleSubmit);
 function handleSubmit(event) {
   event.preventDefault();
-  const query = input.value.trim().toLowerCase();
+  query = input.value.trim().toLowerCase();
   if (!query) {
     iziToast.warning({
       title: 'Caution',
@@ -28,7 +36,9 @@ function handleSubmit(event) {
   showLoader();
   clearGallery();
   getImagesByQuery(query)
-    .then(images => {
+    .then(({ images, totalHits }) => {
+      console.log(images);
+      hideLoadMoreButton();
       if (!images.length) {
         iziToast.error({
           title: 'Sorry',
@@ -36,10 +46,12 @@ function handleSubmit(event) {
             'There are no images matching your search query. Please try again!',
           position: 'center',
         });
+
         return;
       }
-
+      console.log(images);
       createGallery(images);
+
       if (images.length > perPage || images.length) {
         showLoadMoreButton();
       }
@@ -59,38 +71,18 @@ function handleSubmit(event) {
 
 btn.addEventListener('click', handleClick);
 async function handleClick() {
+  page += 1;
+  showLoader();
   try {
-    showLoader();
-    pageNum += 1;
-    getImagesByQuery().then(images => {
-      const imagesPart = images
-        .map(
-          ({
-            webformatURL,
-            largeImageURL,
-            tags,
-            views,
-            likes,
-            comments,
-            downloads,
-          }) =>
-            `<div class="card-img"><a class="img-link" href="${webformatURL}"><img class="img" src="${webformatURL}" data-source="${largeImageURL}" alt="${tags}"></a><div class="caption"><p>Likes<br> ${likes}</p>
-        <p>Views<br> ${views}</p><p>Comments<br> ${comments}</p>
-        <p>Downloads<br> ${downloads}</p></div></div>`
-        )
-        .join('');
-      queryArr.insertAdjacentHTML('beforeend', imagesPart);
-    });
-
-    if (!lightbox) {
-      lightbox = new SimpleLightbox('.gallery a', {
-        captionsData: 'alt',
-        captionDelay: 250,
-      });
+    const { images, totalHits } = await getImagesByQuery(query, page);
+    createGallery(images);
+    const totalPages = Math.ceil(totalHits / perPage);
+    if (page > totalPages) {
+      showLoadMoreButton();
     } else {
-      lightbox.refresh();
+      hideLoadMoreButton();
     }
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
   }
 }
