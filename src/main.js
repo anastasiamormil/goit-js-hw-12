@@ -1,7 +1,9 @@
 import iziToast from 'izitoast';
 // Додатковий імпорт стилівcat
 import 'izitoast/dist/css/iziToast.min.css';
-let page = 499;
+// Описаний у документації
+
+let page = 1;
 
 import {
   form,
@@ -37,7 +39,6 @@ function handleSubmit(event) {
   clearGallery();
   getImagesByQuery(query)
     .then(({ images, totalHits }) => {
-      console.log(images);
       hideLoadMoreButton();
       if (!images.length) {
         iziToast.error({
@@ -49,12 +50,18 @@ function handleSubmit(event) {
 
         return;
       }
-      console.log(images);
+
       createGallery(images);
 
       if (images.length > perPage || images.length) {
         showLoadMoreButton();
       }
+      const elem = document.querySelector('.card-img');
+      let cardHeight = elem.getBoundingClientRect().height;
+      window.scrollBy({
+        top: 2 * cardHeight,
+        behavior: 'smooth',
+      });
     })
     .catch(error => {
       console.error('Pixabay API error:', error);
@@ -72,15 +79,21 @@ function handleSubmit(event) {
 btn.addEventListener('click', handleClick);
 async function handleClick() {
   page += 1;
-  showLoader();
+
   try {
     const { images, totalHits } = await getImagesByQuery(query, page);
     createGallery(images);
     const totalPages = Math.ceil(totalHits / perPage);
-    if (page > totalPages) {
-      showLoadMoreButton();
-    } else {
+
+    if (page >= totalPages) {
       hideLoadMoreButton();
+      iziToast.info({
+        title: 'Upppsss',
+        message:
+          ' We are sorry, but you have reached the end of search results.',
+      });
+    } else {
+      showLoadMoreButton();
     }
   } catch (error) {
     console.log(error.message);

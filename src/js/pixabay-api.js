@@ -18,7 +18,7 @@ export async function getImagesByQuery(query, page) {
 
   const images = [...response.data.hits];
   totalHits = response.data.totalHits;
-  console.log(response.data);
+  // console.log(response.data);
 
   return { images, totalHits };
 }
