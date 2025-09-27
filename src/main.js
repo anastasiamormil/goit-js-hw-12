@@ -25,6 +25,7 @@ async function handleSubmit(event) {
     query = input.value.trim().toLowerCase();
     if (!query) {
       hideLoadMoreButton();
+      hideLoader();
       iziToast.warning({
         title: 'Caution',
         message: 'Please enter key word',
@@ -38,6 +39,8 @@ async function handleSubmit(event) {
 
     hideLoadMoreButton();
     if (!images.length) {
+      hideLoadMoreButton();
+      hideLoader();
       iziToast.error({
         title: 'Sorry',
         message:
