@@ -24,6 +24,7 @@ button {
   background: #4e75ff;
   border: none;
   color: white;
+  display: block;
 }
 button:hover {
   color: white;
@@ -78,4 +79,11 @@ button:hover {
 }
 .hidden {
   display: none;
+}
+.click-btn {
+  margin: 20px auto 20px;
+  padding: 8px 10px;
+  width: 150px;
+  height: 50px;
+  font-size: 20px;
 }

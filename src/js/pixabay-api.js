@@ -2,7 +2,7 @@ import axios from 'axios';
 export const form = document.querySelector('.form');
 export const input = document.querySelector('input[name="search-text"]');
 export const perPage = 15;
-export let totalHits;
+let totalHits;
 export async function getImagesByQuery(query, page) {
   const response = await axios.get('https://pixabay.com/api/?', {
     params: {

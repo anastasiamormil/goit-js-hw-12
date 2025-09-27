@@ -5,13 +5,7 @@ import 'izitoast/dist/css/iziToast.min.css';
 
 let page = 1;
 
-import {
-  form,
-  input,
-  getImagesByQuery,
-  perPage,
-  totalHits,
-} from './js/pixabay-api.js';
+import { form, input, getImagesByQuery, perPage } from './js/pixabay-api.js';
 import {
   showLoader,
   clearGallery,
@@ -24,58 +18,54 @@ import {
 let query;
 hideLoadMoreButton();
 form.addEventListener('submit', handleSubmit);
-function handleSubmit(event) {
-  event.preventDefault();
-  query = input.value.trim().toLowerCase();
-  if (!query) {
-    iziToast.warning({
-      title: 'Caution',
-      message: 'Please enter key word',
-    });
-    return;
-  }
-
-  showLoader();
-  clearGallery();
-  getImagesByQuery(query)
-    .then(({ images, totalHits }) => {
+async function handleSubmit(event) {
+  try {
+    event.preventDefault();
+    page = 1;
+    query = input.value.trim().toLowerCase();
+    if (!query) {
       hideLoadMoreButton();
-      if (!images.length) {
-        iziToast.error({
-          title: 'Sorry',
-          message:
-            'There are no images matching your search query. Please try again!',
-          position: 'center',
-        });
-
-        return;
-      }
-
-      createGallery(images);
-
-      if (images.length > perPage || images.length) {
-        showLoadMoreButton();
-      }
-      const elem = document.querySelector('.card-img');
-      let cardHeight = elem.getBoundingClientRect().height;
-      window.scrollBy({
-        top: 2 * cardHeight,
-        behavior: 'smooth',
+      iziToast.warning({
+        title: 'Caution',
+        message: 'Please enter key word',
       });
-    })
-    .catch(error => {
-      console.error('Pixabay API error:', error);
+      return;
+    }
+
+    showLoader();
+    clearGallery();
+    const { images, totalHits } = await getImagesByQuery(query, page);
+
+    hideLoadMoreButton();
+    if (!images.length) {
       iziToast.error({
-        title: 'Error',
-        message: 'Something went wrong while fetching images',
+        title: 'Sorry',
+        message:
+          'There are no images matching your search query. Please try again!',
         position: 'center',
       });
-    })
-    .finally(() => {
-      hideLoader();
-    });
-}
 
+      return;
+    }
+
+    createGallery(images);
+    const totalPages = Math.ceil(totalHits / perPage);
+    if (page < totalPages) {
+      showLoadMoreButton();
+    } else {
+      hideLoadMoreButton();
+    }
+  } catch (error) {
+    console.error('Pixabay API error:', error);
+    iziToast.error({
+      title: 'Error',
+      message: 'Something went wrong while fetching images',
+      position: 'center',
+    });
+  } finally {
+    hideLoader();
+  }
+}
 btn.addEventListener('click', handleClick);
 async function handleClick() {
   page += 1;
@@ -83,9 +73,16 @@ async function handleClick() {
   try {
     const { images, totalHits } = await getImagesByQuery(query, page);
     createGallery(images);
+    const elem = document.querySelector('.card-img');
+    let cardHeight = elem.getBoundingClientRect().height;
+    window.scrollBy({
+      top: 2 * cardHeight,
+      behavior: 'smooth',
+    });
     const totalPages = Math.ceil(totalHits / perPage);
 
-    if (page >= totalPages) {
+    if (page === totalPages) {
+      // console.log('last page reached:', { page, totalPages, images });
       hideLoadMoreButton();
       iziToast.info({
         title: 'Upppsss',
@@ -96,6 +93,9 @@ async function handleClick() {
       showLoadMoreButton();
     }
   } catch (error) {
-    console.log(error.message);
+    iziToast.error({
+      title: 'Error',
+      message: error.message,
+    });
   }
 }
